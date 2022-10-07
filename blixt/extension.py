@@ -12,6 +12,7 @@ from java.awt.event import KeyEvent
 from javax.swing import DefaultComboBoxModel
 from javax.swing.border import TitledBorder
 from java.awt import Color
+from org.openpnp.model import Placement
 
 
 class ChangeListenerWrapper(ChangeListener):
@@ -241,11 +242,24 @@ class PlacementsPanel(JPanel):
                                     self.cmb_part)
         content_panel.add(self.pnl_part_status)
 
+        lbl_type = JLabel("Type")
+        spring_layout.putConstraint(SpringLayout.NORTH, lbl_type, 15, SpringLayout.SOUTH, lbl_part)
+        spring_layout.putConstraint(SpringLayout.WEST, lbl_type, 0, SpringLayout.WEST, lbl_part)
+        content_panel.add(lbl_type)
+
+        self.cmb_type = JComboBox()
+        self.cmb_type.setModel(DefaultComboBoxModel(["", "Placement", "Fiducial"]))
+        spring_layout.putConstraint(SpringLayout.VERTICAL_CENTER, self.cmb_type, 0,
+                                    SpringLayout.VERTICAL_CENTER, lbl_type)
+        spring_layout.putConstraint(SpringLayout.WEST, self.cmb_type, 0, SpringLayout.WEST,
+                                    self.cmb_part)
+        content_panel.add(self.cmb_type)
+
         self.btn_apply = JButton("Apply")
         spring_layout.putConstraint(SpringLayout.WEST, self.btn_apply, 0, SpringLayout.WEST,
-                                    self.cmb_enabled)
+                                    self.cmb_type)
         spring_layout.putConstraint(SpringLayout.NORTH, self.btn_apply, 20, SpringLayout.SOUTH,
-                                    lbl_part)
+                                    lbl_type)
         btn_apply_action_listener = ActionListenerWrapper()
         btn_apply_action_listener.set_action_performed_handler(self._on_apply_btn_action)
         self.btn_apply.addActionListener(btn_apply_action_listener)
@@ -289,6 +303,7 @@ class PlacementsPanel(JPanel):
 
     def _on_apply_btn_action(self, e):
         self._apply_settings()
+        self._clear_fields()
 
     def _update_board_status(self):
         if self.board_name:
@@ -351,6 +366,12 @@ class PlacementsPanel(JPanel):
         else:
             part = None
 
+        part_type_str = str(self.cmb_type.getSelectedItem())
+        if part_type_str != "":
+            part_type = Placement.Type.valueOf(part_type_str)
+        else:
+            part_type = None
+
         for placements in self.selected_placements.values():
             for placement in placements:
                 if placement_enabled is not None:
@@ -359,7 +380,17 @@ class PlacementsPanel(JPanel):
                 if part:
                     placement.setPart(part)
 
+                if part_type:
+                    placement.setType(part_type)
+
         return True
+
+    def _clear_fields(self):
+        self.txt_ids.setText("")
+        self.cmb_enabled.setSelectedIndex(-1)
+        self.cmb_part.setSelectedIndex(-1)
+        self.cmb_type.setSelectedIndex(-1)
+        self.txt_ids.grabFocus()
 
     def _fetch_placements(self):
         board_name = None
