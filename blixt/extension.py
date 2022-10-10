@@ -367,8 +367,10 @@ class PlacementsPanel(JPanel):
             part = None
 
         part_type_str = str(self.cmb_type.getSelectedItem())
-        if part_type_str != "":
-            part_type = Placement.Type.valueOf(part_type_str)
+        if part_type_str == "Placement":
+            part_type = Placement.Type.Placement
+        elif part_type_str == "Fiducial":
+            part_type = Placement.Type.Fiducial
         else:
             part_type = None
 
